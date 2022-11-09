@@ -4,6 +4,7 @@ import com.example.grad_api_gateway.filters.authorizationFilter.jwt.TokenService
 import com.example.grad_api_gateway.filters.authorizationFilter.jwt.dto.VerifyTokenResultDto;
 import com.example.grad_api_gateway.filters.authorizationFilter.jwt.exception.JwtNotFoundException;
 import com.example.grad_api_gateway.filters.authorizationFilter.jwt.model.Role;
+import com.example.grad_api_gateway.filters.exceptions.TokenNotFoundException;
 import com.example.grad_api_gateway.filters.exceptions.UserNotAuthorizedException;
 import com.example.grad_api_gateway.filters.utils.FilterValidator;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -16,6 +17,8 @@ import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.stereotype.Component;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
+
+import java.util.List;
 
 @Slf4j
 @Component
@@ -39,7 +42,14 @@ public class AuthorizationFilter implements GlobalFilter, Ordered {
             return chain.filter(exchange);
         }
 
-        String jwtToken = exchange.getRequest().getHeaders().get(AUTHORIZATION).get(0);
+        List<String> temp = exchange.getRequest().getHeaders().get(AUTHORIZATION);
+        if(temp == null )
+        {
+            throw new TokenNotFoundException("token is not found");
+        }
+
+        String jwtToken = temp.get(0);
+
         if(jwtToken == null)
         {
             throw new JwtNotFoundException("jwt token not found!");
